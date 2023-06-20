@@ -1,6 +1,14 @@
 import './index.css';
 import {useState} from "react";
 
+function StepMessage({ step, children }) {
+  return (
+    <p className="message">
+      <h3>Step {step}</h3> {children}
+    </p>
+  );
+}
+
 function Button({ bgColor, textColor, onClick, children }) {
   return (
     <button
@@ -50,7 +58,9 @@ export default function App() {
             }
           </div>
 
-          <p className="message">Step {step + 1}: {messages[step]}</p>
+          <StepMessage step={step + 1}>
+            {messages[step]}
+          </StepMessage>
 
           <div className="buttons">
             <Button
