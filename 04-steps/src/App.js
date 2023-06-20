@@ -1,13 +1,13 @@
 import './index.css';
 import {useState} from "react";
 
-const messages = [
-  "Learn React ⚛️",
-  "Apply for jobs 💼",
-  "Invest your new income 🤑",
-];
-
 export default function App() {
+  const messages = [
+    "Learn React ⚛️",
+    "Apply for jobs 💼",
+    "Invest your new income 🤑",
+  ];
+
   const [step, setStep] = useState(0);
   const [isOpen, setIsOpen] = useState(true);
 
