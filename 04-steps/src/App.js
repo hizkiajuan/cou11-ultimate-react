@@ -1,6 +1,17 @@
 import './index.css';
 import {useState} from "react";
 
+function Button({ bgColor, textColor, onClick, children }) {
+  return (
+    <button
+      style={{ backgroundColor: bgColor, color: textColor }}
+      onClick={onClick}
+    >
+      {children}
+    </button>
+  );
+}
+
 export default function App() {
   const messages = [
     "Learn React ⚛️",
@@ -42,18 +53,20 @@ export default function App() {
           <p className="message">Step {step + 1}: {messages[step]}</p>
 
           <div className="buttons">
-            <button
-              style={{ backgroundColor: "#7950f2", color: "#fff" }}
+            <Button
+              bgColor="#7950f2"
+              textColor="#fff"
               onClick={handlePrevious}
             >
-              Previous
-            </button>
-            <button
-              style={{ backgroundColor: "#7950f2", color: "#fff" }}
+              <span>👈</span> Previous
+            </Button>
+            <Button
+              bgColor="#7950f2"
+              textColor="#fff"
               onClick={handleNext}
             >
-              Next
-            </button>
+              Next <span>👉</span>
+            </Button>
           </div>
         </div>
       }
