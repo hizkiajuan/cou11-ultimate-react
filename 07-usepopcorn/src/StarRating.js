@@ -14,8 +14,8 @@ const starContainerStyle = {
 function Star({ isFull, onRate, onHoverIn, onHoverOut, color, size }) {
   const starStyle = {
     display: 'block',
-    width: '40px',
-    height: '40px',
+    width: `${size}px`,
+    height: `${size}px`,
     cursor: 'pointer',
     color,
     size,
