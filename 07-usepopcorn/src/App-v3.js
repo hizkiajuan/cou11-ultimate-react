@@ -1,9 +1,6 @@
 import {useEffect, useRef, useState} from "react";
 import config from "./config.json"
 import StarRating from "./StarRating";
-import {useMovies} from "./useMovies";
-import {useLocalStorageState} from "./useLocalStorageState";
-import {useKey} from "./useKey";
 
 const average = (arr) =>
   arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0).toFixed(2);
@@ -27,12 +24,22 @@ function Search({ query, setQuery }) {
 
   const inputEl = useRef(null);
 
-  // custom hook
-  useKey('Enter', () => {
-    if (document.activeElement === inputEl.current) return;
-    inputEl.current.focus();
-    setQuery('');
-  });
+  useEffect(() => {
+    function callback(e) {
+      if (document.activeElement === inputEl.current) {
+        return;
+      }
+
+      if (e.code === 'Enter') {
+        inputEl.current.focus();
+        setQuery('');
+      }
+    }
+
+    document.addEventListener('keydown', callback);
+
+    return () => document.removeEventListener('keydown', callback);
+  }, [setQuery])
 
   return (
     <input
@@ -98,9 +105,6 @@ function MovieDetails({ selectedId, watched, onCloseMovie, onAddWatched }) {
   // #2 break the linked-list: using early return
   // if (imdbRating > 8) return <p>Greatest ever!</p>
 
-  // custom hook
-  useKey('Escape', onCloseMovie);
-
   useEffect(() => {
     async function getMovieDetails() {
       setIsLoading(true);
@@ -129,6 +133,24 @@ function MovieDetails({ selectedId, watched, onCloseMovie, onAddWatched }) {
       console.log(`Clean up effect for movie ${title}`);
     };
   }, [title]);
+
+  useEffect(() => {
+    function callback(e) {
+      if (e.code === 'Escape') {
+        onCloseMovie();
+      }
+    }
+
+    // kinda react "hack"
+    // useEffect enables us to communicate with the DOM ("outside world")
+    document.addEventListener('keydown', callback);
+
+    return () => {
+      // important: not to always addEventListener when re-render/unmounted
+      // `callback` must be the same with the initialization
+      document.removeEventListener('keydown', callback);
+    };
+  }, [onCloseMovie]);
 
   useEffect(() => {
     if (userRating) {
@@ -335,15 +357,97 @@ function Main({ children }) {
 
 export default function App() {
   const [query, setQuery] = useState("");
+  const [movies, setMovies] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
   const [selectedId, setSelectedId] = useState(null);
 
-  // custom hook
-  // handleCloseMovie is hoisted -> it's declared by regular function
-  // arrow function is not hoisted
-  const {movies, isLoading, error} = useMovies(query, handleCloseMovie);
+  const [watched, setWatched] = useState(() => {
+    // initialize state using callback
+    // a.k.a Lazy Initial State / Lazy Evaluation
+    // must be pure and accept no args; called only on initial render
+    const storedValue = localStorage.getItem('usePopcorn:watched');
+    return storedValue ? JSON.parse(storedValue) : [];
+  });
 
-  // custom hook
-  const [watched, setWatched] = useLocalStorageState([], 'usePopcorn:watched');
+  /** #1 Basic **/
+  /*
+  // This is how to fetch data on mount
+  useEffect(() => {
+    // do not overuse useEffect, use event handler if possible
+    // function x() { fetch(...) }
+    // event handler would be triggered onClick, onBlur, etc
+
+    // effect
+    fetch(`https://omdbapi.com/?apikey=${config.omdbApiKey}&s=interstellar`)
+      .then((res) => res.json())
+      .then((data) => setMovies(data.Search));
+
+    // cleanup function
+    return () => console.log('cleanup...');
+  }, []); // empty array: only trigger once when state is empty
+  // ^^dependency array
+  */
+
+  /** #2 Refactored using async/await **/
+  useEffect(() => {
+    const controller = new AbortController();
+
+    // at the end: this `fetchMovies` could be moved out
+    // as an event handler, instead of side effect
+    async function fetchMovies() {
+      try {
+        setIsLoading(true);
+        setError(''); // reset
+
+        const res = await fetch(
+          `https://omdbapi.com/?apikey=${config.omdbApiKey}&s=${query}`,
+          { signal: controller.signal },
+        );
+
+        if (!res.ok) {
+          throw new Error('Something went wrong with fetching movies.');
+        }
+
+        const data = await res.json();
+
+        if (data.Response === 'False') {
+          throw new Error('Movie not found');
+        }
+
+        setMovies(data.Search);
+
+        // logged twice, because <React.StrictMode> (see index.js)
+        // only happened in React 18+, in development env
+        // console.log(data.Search);
+      } catch (err) {
+        if (err.name !== "AbortError") {
+          setError(err.message);
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    if (query.length < 3) {
+      setMovies([]);
+      setError('');
+      return;
+    }
+
+    handleCloseMovie();
+    fetchMovies();
+
+    return () => {
+      // clean up data fetching
+      // make sure no race condition: fast typing, multiple button click, etc
+      controller.abort();
+    };
+  }, [query]);
+
+  useEffect(() => {
+    localStorage.setItem('usePopcorn:watched', JSON.stringify(watched));
+  }, [watched]);
 
   function handleSelectMovie(id) {
     setSelectedId((currId) => currId === id ? null : id);
