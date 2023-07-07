@@ -35,6 +35,42 @@
         "lng": 13.376933665713324
       },
       "id": 98443197
+    },
+    {
+      "cityName": "Alberite",
+      "country": "Spain",
+      "emoji": "🇪🇸",
+      "date": "2023-07-07T12:10:55.435Z",
+      "notes": "",
+      "position": {
+        "lat": 42.407234661551875,
+        "lng": -2.4169921875000004
+      },
+      "id": 98443198
+    },
+    {
+      "cityName": "Sao Salvador e Santa Maria",
+      "country": "Portugal",
+      "emoji": "🇵🇹",
+      "date": "2023-07-07T13:02:43.618Z",
+      "notes": "",
+      "position": {
+        "lat": 37.61423141542417,
+        "lng": -8.613281250000002
+      },
+      "id": 98443200
+    },
+    {
+      "cityName": "La Feuillee",
+      "country": "France",
+      "emoji": "🇫🇷",
+      "date": "2023-07-07T13:02:57.781Z",
+      "notes": "",
+      "position": {
+        "lat": 48.40003249610685,
+        "lng": -3.8891601562500004
+      },
+      "id": 98443201
     }
   ]
 }
